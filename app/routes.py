@@ -43,13 +43,13 @@ def login():
 @app.route('/getPosts', methods=['POST'])
 @UserManager.validateUser
 def getPosts(user):
-	#print(list(user.getPosts()))
-	#return "ye"
 	return JSONEncoder().encode(user.getPosts())
-	#return jsonify(list(user.getPosts()))
 
 	
-
+@app.route('/getOldPosts', methods=['POST'])
+@UserManager.validateUser
+def getOldPosts(user):
+	return JSONEncoder().encode(user.getOldPosts())
 
 
 @app.route('/invalid')
@@ -65,16 +65,16 @@ def home(user):
 
 
 
-@app.route('/test')
-def about():
-	#mongo.db.users.remove({})
+@app.route('/reset', methods=['POST'])
+def rest():
+	mongo.db.users.remove({})
 	mongo.db.posts.remove({})
-	#mongo.db.users.insert({"username":"marc","password":"nohash","sessionKey":"823gfc32gf8723gf83g27"})
+	mongo.db.users.insert({"username":"marc","password":"nohash","sessionKey":"1","requiredPostIds":[]})
 	
-	mongo.db.posts.insert({"username":"marc","seen":[],"to":["marc","john"],"text":"test"})
-	mongo.db.posts.insert({"username":"john","seen":[],"to":["john"],"text":"test"})
-	mongo.db.posts.insert({"username":"john","seen":[],"to":["marc"],"text":"join the critique team"})
-	mongo.db.posts.insert({"username":"ueee","seen":[],"to":["fast","marc"],"text":"test"})
+	mongo.db.posts.insert({"username":"marc","seen":[],"votes":{},"to":["marc","john"],"text":"test"})
+	mongo.db.posts.insert({"username":"john","seen":[],"votes":{},"to":["john"],"text":"test"})
+	mongo.db.posts.insert({"username":"john","seen":[],"votes":{},"to":["marc"],"text":"join the critique team"})
+	mongo.db.posts.insert({"username":"ueee","seen":[],"votes":{},"to":["fast","marc"],"text":"test"})
 	
 	
 
