@@ -46,11 +46,30 @@ def getPosts(user):
 	return JSONEncoder().encode(user.getPosts())
 
 	
+@app.route('/isMutual', methods=['POST'])
+@UserManager.validateUser
+def isMutual(user):
+	return str(user.isMutual(request.json["user"]))
+
+@app.route('/getFollows', methods=['POST'])
+@UserManager.validateUser
+def getFollows(user):
+	return JSONEncoder().encode(user.getFollows())
+
 @app.route('/getOldPosts', methods=['POST'])
 @UserManager.validateUser
 def getOldPosts(user):
 	return JSONEncoder().encode(user.getOldPosts())
 
+@app.route('/follow', methods=['POST'])
+@UserManager.validateUser
+def follow(user):
+	return JSONEncoder().encode(user.follow(request.json["user"]))
+
+@app.route('/sendPost', methods=['POST'])
+@UserManager.validateUser
+def sendPost(user):
+	return JSONEncoder().encode(user.sendPost(request.json))
 
 @app.route('/invalid')
 def invalid():
@@ -69,7 +88,13 @@ def home(user):
 def rest():
 	mongo.db.users.remove({})
 	mongo.db.posts.remove({})
-	mongo.db.users.insert({"username":"marc","password":"nohash","sessionKey":"1","requiredPostIds":[]})
+	mongo.db.users.insert({
+		"username":"marc",
+		"password":"nohash",
+		"sessionKey":"1",
+		"requiredPostIds":[],
+		"following":["marc"]
+	})
 	
 	mongo.db.posts.insert({"username":"marc","seen":[],"votes":{},"to":["marc","john"],"text":"test"})
 	mongo.db.posts.insert({"username":"john","seen":[],"votes":{},"to":["john"],"text":"test"})

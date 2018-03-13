@@ -26,6 +26,37 @@ class User(object):
 	def isValid(self):
 		return self.user != None
 
+	def follow(self,user):
+		#DO CHECK TO MAKE SURE YOU CANT FOLLOW SAME USER TWICE
+		mongo.db.posts.update({"username":self.getUsername()},{ 
+			"$push": {"following":user}
+		});
+		return {"status":"ok"}
+
+
+	def isMutual(self,user):
+		return user in list(mongo.db.users.distinct("following",{"username":user}))
+		
+	def getFollows(self):
+		return list(mongo.db.users.distinct("following",{"username":self.getUsername()}))
+
+	def sendPost(self,params):
+		#DO CHECKS FOR THIGS LIKE LENGTH AND STUFF
+		for user in params["to"]:
+			if not self.isMutual(user):
+				return {"status":"error", "message":str(user)+" is not your mutual or does not exist!"}
+		mongo.db.posts.insert({
+			"username":self.getUsername(),
+			"seen":[],
+			"votes":{},
+			"to":params["to"],
+			"content":params["content"],
+			"title":params["title"],
+			"type":params["type"]
+		})
+		return {"status":"ok"}
+
+
 
 	#potentially move to a celery task or something
 	def castVotes(self,votes):
