@@ -38,10 +38,13 @@ class User(object):
 		return user in list(mongo.db.users.distinct("following",{"username":user}))
 		
 	def getFollows(self):
-		return list(mongo.db.users.distinct("following",{"username":self.getUsername()}))
+		return {
+			"status":"ok",
+			"message":list(mongo.db.users.distinct("following",{"username":self.getUsername()}))
+		}
 
 	def sendPost(self,params):
-		#DO CHECKS FOR THIGS LIKE LENGTH AND STUFF
+		#DO CHECKS FOR THIGS LIKE LENGTH AND VALID TYPE, ETC 
 		for user in params["to"]:
 			if not self.isMutual(user):
 				return {"status":"error", "message":str(user)+" is not your mutual or does not exist!"}
