@@ -133,7 +133,7 @@ class User(object):
 		update={"$push": {"seen":self.getUsername()} }	
 
 		#amount of posts you can see at one time without voting is 5
-		posts=mongo.db.posts.find(find).limit(5)
+		posts=mongo.db.posts.find(find).limit(1)
 		
 		postsValue=list(posts)
 		
@@ -146,11 +146,12 @@ class User(object):
 		
 		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"requiredPostIds":ids}})
 		
-		#remove votes so you can't see who voted for what until you've voted
+		#remove votes so you can't see who voted for what until you've voted, and replace it w/ the number of votes
 		for post in postsValue:
-			post["votes"]="Hidden"
+			post["votes"]=len(post["votes"])
 
-		return postsValue
+
+		return {"status":"ok","message":postsValue}
 
 
 
