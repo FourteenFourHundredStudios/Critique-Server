@@ -8,6 +8,9 @@ from app import UserManager
 from flask import send_from_directory
 import json
 from bson import ObjectId
+import base64
+from flask_uploads import UploadSet, configure_uploads, IMAGES
+from flask import send_file
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -38,6 +41,23 @@ def login():
 	else:
 		return jsonify({"status":"error", "message":"invalid username or password!"})
 
+@app.route('/getMyPatch', methods=['POST'])
+@UserManager.validateUser
+def getMyPatch(user):
+
+	return send_file(user.getPatchPath(), mimetype='image/png')
+
+@app.route('/setPatch', methods=['POST'])
+def setPatch():
+	user = UserManager.User(request.form["apiKey"],request.form)
+	photos = UploadSet('photos', IMAGES)
+	if request.method == 'POST' and 'pic' in request.files:
+		configure_uploads(app, photos)
+		filename = photos.save(request.files['pic'])
+		user.setPatch(filename)
+		return jsonify({"status":"ok"})
+	else:
+		return jsonify({"status":"error","message":"could not save image!"})
 
 
 @app.route('/getPosts', methods=['POST'])

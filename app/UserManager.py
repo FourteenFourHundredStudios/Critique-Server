@@ -106,7 +106,12 @@ class User(object):
 
 		return list(posts)
 
+	def getPatchPath(self):
+		return "../images/"+self.user["patch"]
 
+	def setPatch(self,filename):
+		#DO THING WHERE YOU DELETE OLD FILE FIRSTTT!!!!!!
+		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"patch":filename}})
 
 	def getPosts(self):
 		# split into several functions
@@ -177,18 +182,6 @@ def login(username,password):
 def validateUser(api_method):
 	@wraps(api_method)
 	def check_api_key():
-		"""
-		if 'sessionKey' in request.cookies:
-			sessionKey = request.cookies["sessionKey"]
-			user = User(sessionKey)
-			if user.isValid():
-				return api_method(user)
-			else:
-				return "You must login to view this page!"
-		else:
-			return "You must login to view this page!"
-		"""
-
 		if "apiKey" in request.json:
 			apiKey = request.json["apiKey"]
 			user = User(apiKey,request)
