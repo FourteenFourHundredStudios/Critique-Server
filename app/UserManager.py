@@ -166,7 +166,7 @@ class User(object):
 		update={"$push": {"seen":self.getUsername()} }	
 
 		#amount of posts you can see at one time without voting on all prior posts is 5
-		posts=mongo.db.posts.find(find).limit(2)
+		posts=mongo.db.posts.find(find).limit(5)
 		
 		postsValue=list(posts)
 		
