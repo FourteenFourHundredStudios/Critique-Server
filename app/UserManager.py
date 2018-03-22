@@ -35,7 +35,7 @@ class User(object):
 
 
 	def isMutual(self,user):
-		return user in list(mongo.db.users.distinct("following",{"username":user}))
+		return user in list(mongo.db.users.distinct("following",{"username":user})) or user==self.getUsername() or user=="self"
 		
 	def getFollows(self):
 		return {
@@ -65,23 +65,39 @@ class User(object):
 	def castVotes(self,votes):
 		
 
-		#this seems stupid, but you cant only update some of the posts if it fails
+
+		ids=[]
+
 		for vote in votes:
-			
+			ids.append(ObjectId(vote.get("id")))
 			if vote["vote"]!=0 and vote["vote"]!=1:
-				return False
+				return {"status":"error","message":"Invalid vote IDs!"}
+
+		#print(ids)
+		#print(self.user["requiredPostIds"])
+
+		if not set(ids).issubset( set(self.user["requiredPostIds"])):
+			return {"status":"error","message":"Invalid vote IDs!"}
+
+
+		mongo.db.users.update({ "username": self.getUsername()},{
+			"$pull":{"requiredPostIds":{"$in":ids}}
+		})
+
+
+
 
 		for vote in votes:
-
-
 			mongo.db.posts.update({ "_id": ObjectId(vote["id"])},{ 
 				"$push": {"seen":self.getUsername()} ,
 				"$set": {"votes."+self.getUsername(): vote["vote"] } } ,upsert=False)
-		return True
+			
+		return {"status":"ok"}
+
 			 
 
 	"""
-	 	getPosts example API call:
+	 	castVotes example API call:
 
 		{
 			"apiKey": "2230894",
@@ -113,21 +129,33 @@ class User(object):
 		#DO THING WHERE YOU DELETE OLD FILE FIRSTTT!!!!!!
 		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"patch":filename}})
 
+
+
+
 	def getPosts(self):
 		# split into several functions
 
+
+
+		
 		#in vote method make sure to check that the posts your validating were sent to you, AND you have not voted yet
 		if len(self.user["requiredPostIds"]) != 0:
 			
+			"""
 			#catch bson exception
 			ids=[ObjectId(obj["id"]) for obj in self.request.json["votes"]]
  
 			#print(self.user["requiredPostIds"])
 			if ids != self.user["requiredPostIds"]:
-				return {"status":"error", "message":"Invalid vote IDs!"}
+			"""
+			
+			return {"status":"error", "message":"You have not voted on all past posts!"}
 
+		"""
 		if not self.castVotes(self.request.json["votes"]):
 			return {"status":"error", "message":"Invalid vote! Vote must either be a 0 or 1"}
+		"""
+
 
 		find={
 			"$and":[  
@@ -137,8 +165,8 @@ class User(object):
 		}
 		update={"$push": {"seen":self.getUsername()} }	
 
-		#amount of posts you can see at one time without voting is 5
-		posts=mongo.db.posts.find(find).limit(1)
+		#amount of posts you can see at one time without voting on all prior posts is 5
+		posts=mongo.db.posts.find(find).limit(2)
 		
 		postsValue=list(posts)
 		

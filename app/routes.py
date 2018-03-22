@@ -12,6 +12,8 @@ import base64
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 from flask import send_file
 
+#self IS A RESTRICTED USERNAME THAT REFERES TO yourself
+
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
@@ -41,12 +43,20 @@ def login():
 	else:
 		return jsonify({"status":"error", "message":"invalid username or password!"})
 
-@app.route('/getMyPatch', methods=['POST'])
-@UserManager.validateUser
-def getMyPatch(user):
+@app.route('/getPatch/<apiKey>/<username>', methods=["GET",'POST'])
+def getPatch(apiKey,username):
+	user = UserManager.User(apiKey,{})
+	if(user.isMutual(username)):
+		path = "error.png"
+		if username!="self":
+			path = mongo.db.users.find_one({"username":username})["patch"]
+		else:
+			path=user.getPatchPath()
+		return send_file("../images/"+path, mimetype='image/png')
+	else:
+		return jsonify({"status":"error","message":"This user is not your mutual!"})
 
-	return send_file(user.getPatchPath(), mimetype='image/png')
-
+#move form params to url strings
 @app.route('/setPatch', methods=['POST'])
 def setPatch():
 	user = UserManager.User(request.form["apiKey"],request.form)
@@ -65,7 +75,11 @@ def setPatch():
 def getPosts(user):
 	return JSONEncoder().encode(user.getPosts())
 
-	
+@app.route('/castVotes', methods=['POST'])
+@UserManager.validateUser
+def castVotes(user):
+	return JSONEncoder().encode(user.castVotes(request.json["votes"]))
+
 @app.route('/isMutual', methods=['POST'])
 @UserManager.validateUser
 def isMutual(user):
@@ -112,6 +126,7 @@ def rest():
 		"username":"marc",
 		"password":"nohash",
 		"sessionKey":"1",
+		"patch":"default.png",
 		"requiredPostIds":[],
 		"following":["marc"]
 	})
