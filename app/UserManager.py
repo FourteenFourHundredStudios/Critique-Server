@@ -63,8 +63,6 @@ class User(object):
 
 	#potentially move to a celery task or something
 	def castVotes(self,votes):
-		
-
 
 		ids=[]
 
@@ -132,6 +130,7 @@ class User(object):
 
 
 
+
 	def getPosts(self):
 		# split into several functions
 
@@ -139,7 +138,7 @@ class User(object):
 
 		
 		#in vote method make sure to check that the posts your validating were sent to you, AND you have not voted yet
-		if len(self.user["requiredPostIds"]) != 0:
+		if len(self.user["requiredPostIds"]) > 3:
 			
 			"""
 			#catch bson exception

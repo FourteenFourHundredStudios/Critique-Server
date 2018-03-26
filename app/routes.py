@@ -26,6 +26,12 @@ class JSONEncoder(json.JSONEncoder):
 def index():
 	return render_template("index.html")
 
+@app.route('/search/<username>', methods=['GET','POST'])
+def doSearch(username):
+	users=list(mongo.db.users.find({"username":{"$regex": username}}))
+	return jsonify({"results":[user["username"] for user in users]})
+
+
 
 @app.route('/static/<path:path>')
 def send_js(path):
@@ -128,9 +134,27 @@ def rest():
 		"sessionKey":"1",
 		"patch":"default.png",
 		"requiredPostIds":[],
-		"following":["marc"]
+		"following":["marc","john","adam","test","snakes"]
 	})
 	
+	mongo.db.users.insert({
+		"username":"adam",
+		"password":"nohash",
+		"sessionKey":"2",
+		"patch":"default.png",
+		"requiredPostIds":[],
+		"following":["marc","john","adam","test","snakes"]
+	})
+
+	mongo.db.users.insert({
+		"username":"noah",
+		"password":"nohash",
+		"sessionKey":"3",
+		"patch":"default.png",
+		"requiredPostIds":[],
+		"following":["marc","john","adam","test","snakes"]
+	})
+
 	mongo.db.posts.insert({"username":"marc","title":"Real Post!","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"This is the first Critique post that has ever been rendered from the server! Whoa!!"})
 	mongo.db.posts.insert({"username":"marc","title":"Nooo","type":"text","seen":[],"votes":{},"to":["john"],"content":"NOPE!"})
 	
