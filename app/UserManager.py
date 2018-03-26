@@ -85,11 +85,19 @@ class User(object):
 
 
 
+		"""
 		for vote in votes:
 			mongo.db.posts.update({ "_id": ObjectId(vote["id"])},{ 
 				"$push": {"seen":self.getUsername()} ,
 				"$set": {"votes."+self.getUsername(): vote["vote"] } } ,upsert=False)
-			
+		"""	
+
+		#change to update_many later
+		for vote in votes:
+			mongo.db.posts.update({ "_id": ObjectId(vote["id"])},{ 
+				"$set": {"votes."+self.getUsername(): vote["vote"] } } ,upsert=False)
+
+		
 		return {"status":"ok"}
 
 			 
@@ -138,22 +146,12 @@ class User(object):
 
 		
 		#in vote method make sure to check that the posts your validating were sent to you, AND you have not voted yet
+		print(self.user["requiredPostIds"])
 		if len(self.user["requiredPostIds"]) > 3:
-			
-			"""
-			#catch bson exception
-			ids=[ObjectId(obj["id"]) for obj in self.request.json["votes"]]
- 
-			#print(self.user["requiredPostIds"])
-			if ids != self.user["requiredPostIds"]:
-			"""
-			
-			return {"status":"error", "message":"You have not voted on all past posts!"}
 
-		"""
-		if not self.castVotes(self.request.json["votes"]):
-			return {"status":"error", "message":"Invalid vote! Vote must either be a 0 or 1"}
-		"""
+			return {"status":"error", "message":"You cannot have more than 3 unvoted posts"}
+
+
 
 
 		find={
@@ -174,6 +172,11 @@ class User(object):
 		posts.rewind()
 		ids=[post.get("_id") for post in posts]
 		
+
+		mongo.db.posts.update_many({ "_id": { "$in": ids } },{ 
+			"$push": {"seen":self.getUsername()} ,
+		} ,upsert=False)
+
 		#mongo.db.posts.update_many({ "_id": { "$in": ids } },update)
 		
 		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"requiredPostIds":ids}})

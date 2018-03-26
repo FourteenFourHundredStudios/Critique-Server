@@ -155,8 +155,8 @@ def rest():
 		"following":["marc","john","adam","test","snakes"]
 	})
 
-	mongo.db.posts.insert({"username":"marc","title":"Real Post!","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"This is the first Critique post that has ever been rendered from the server! Whoa!!"})
-	mongo.db.posts.insert({"username":"marc","title":"Nooo","type":"text","seen":[],"votes":{},"to":["john"],"content":"NOPE!"})
+	#mongo.db.posts.insert({"username":"marc","title":"Real Post!","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"This is the first Critique post that has ever been rendered from the server! Whoa!!"})
+	#mongo.db.posts.insert({"username":"marc","title":"Nooo","type":"text","seen":[],"votes":{},"to":["john"],"content":"NOPE!"})
 	
 	for i in range(37):
 		mongo.db.posts.insert({"username":"marc","title":"Test post "+str(i),"type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"see 2"})
