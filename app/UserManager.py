@@ -146,11 +146,14 @@ class User(object):
 
 		
 		#in vote method make sure to check that the posts your validating were sent to you, AND you have not voted yet
-		print(self.user["requiredPostIds"])
+		#print(self.user["requiredPostIds"])
+		
+		
+	
 		if len(self.user["requiredPostIds"]) > 3:
 
-			return {"status":"error", "message":"You cannot have more than 3 unvoted posts"}
-
+			return {"status":"error", "message":"You cannot have more than 1 unvoted post!"}
+	
 
 
 
@@ -179,7 +182,7 @@ class User(object):
 
 		#mongo.db.posts.update_many({ "_id": { "$in": ids } },update)
 		
-		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"requiredPostIds":ids}})
+		mongo.db.users.update({"username":self.getUsername()} , {"$push": {"requiredPostIds":{ "$each": ids }}})
 		
 		#remove votes so you can't see who voted for what until you've voted, and replace it w/ the number of votes
 		for post in postsValue:
