@@ -4,6 +4,7 @@ from functools import wraps
 from flask import request
 from flask import make_response,redirect
 from flask import jsonify
+from app import mutuals
 from bson.objectid import ObjectId
 
 class User(object):
@@ -37,11 +38,9 @@ class User(object):
 	def isMutual(self,user):
 		return user in list(mongo.db.users.distinct("following",{"username":user})) or user==self.getUsername() or user=="self"
 		
-	def getFollows(self):
-		return {
-			"status":"ok",
-			"message":list(mongo.db.users.distinct("following",{"username":self.getUsername()}))
-		}
+	def getMutuals(self):
+		return list(mongo.db.users.aggregate(mutuals.getMutuals(self.getUsername())))
+		
 
 	def sendPost(self,params):
 		#DO CHECKS FOR THIGS LIKE LENGTH AND VALID TYPE, ETC 
@@ -136,8 +135,15 @@ class User(object):
 		mongo.db.users.update({"username":self.getUsername()} , {"$set":{"patch":filename}})
 
 
-
-
+	def getPost(self,id):
+		find={
+			"$and":[  
+				{"_id":ObjectId(id)},
+				{"to":{"$in": [self.getUsername()]}}, 
+				{"seen":{"$in": [self.getUsername()]}}  
+			]
+		}
+		return list(mongo.db.posts.find_one(find))
 
 	def getPosts(self):
 		# split into several functions
