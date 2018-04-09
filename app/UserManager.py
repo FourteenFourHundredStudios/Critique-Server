@@ -117,7 +117,7 @@ class User(object):
 	"""
 
 	#THIS FUNCTION IS BROKEN, FIX IT LATER
-	def getOldPosts(self):
+	def getOldPosts(self,page):
 		find={
 			"$and":[  
 				{"to":{"$in": [self.getUsername()]}},  
@@ -136,7 +136,10 @@ class User(object):
 		find["$and"][1]["$or"].append({"votes":down})
 
 
-		posts=mongo.db.posts.find(find)#.limit(15)
+		posts=mongo.db.posts.find(find).sort([("_id",-1)]).skip(int(page)*10).limit(10)
+
+		
+
 
 		return list(posts)
 

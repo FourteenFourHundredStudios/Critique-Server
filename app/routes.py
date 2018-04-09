@@ -102,7 +102,7 @@ def getFollows(user):
 @app.route('/getArchive', methods=['POST'])
 @UserManager.validateUser
 def getArchive(user):
-	return JSONEncoder().encode({"archive":user.getOldPosts()})
+	return JSONEncoder().encode({"archive":user.getOldPosts(request.json["page"])})
 
 
 @app.route('/getPost', methods=['POST'])
