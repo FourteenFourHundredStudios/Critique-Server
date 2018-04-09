@@ -116,14 +116,27 @@ class User(object):
 		}
 	"""
 
+	#THIS FUNCTION IS BROKEN, FIX IT LATER
 	def getOldPosts(self):
 		find={
 			"$and":[  
 				{"to":{"$in": [self.getUsername()]}},  
-				{"seen":{"$in": [self.getUsername()]}}  
+				{"$or":[
+					
+				]}
 			]
 		}
-		posts=mongo.db.posts.find(find).limit(15)
+
+		up={}
+		down={}
+		up[self.getUsername()]=1
+		down[self.getUsername()]=0
+
+		find["$and"][1]["$or"].append({"votes":up})
+		find["$and"][1]["$or"].append({"votes":down})
+
+
+		posts=mongo.db.posts.find(find)#.limit(15)
 
 		return list(posts)
 

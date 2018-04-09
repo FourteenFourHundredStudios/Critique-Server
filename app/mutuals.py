@@ -1,10 +1,10 @@
 
 
 def getMutuals(username):
-    return [
+    return     [
         { 
             "$match" : {
-                "username" : username
+                "username" : "marc"
             }
         }, 
         { 
@@ -26,12 +26,14 @@ def getMutuals(username):
             "$project" : {
                 "followed" : "$followed", 
                 "username" : "$username", 
+                "score" : "$value.score", 
                 "following" : "$value.following"
             }
         }, 
         { 
             "$project" : {
                 "followed" : "$followed", 
+                "score" : "$score", 
                 "isMutual" : {
                     "$map" : {
                         "input" : "$following", 
@@ -54,7 +56,8 @@ def getMutuals(username):
                             "$zip" : {
                                 "inputs" : [
                                     "$followed", 
-                                    "$isMutual"
+                                    "$isMutual", 
+                                    "$score"
                                 ]
                             }
                         }, 
@@ -70,6 +73,12 @@ def getMutuals(username):
                                 "$arrayElemAt" : [
                                     "$$el", 
                                     1.0
+                                ]
+                            }, 
+                            "score" : {
+                                "$arrayElemAt" : [
+                                    "$$el", 
+                                    2.0
                                 ]
                             }
                         }
