@@ -29,7 +29,8 @@ class User(object):
 
 	def follow(self,user):
 		#DO CHECK TO MAKE SURE YOU CANT FOLLOW SAME USER TWICE
-		mongo.db.posts.update({"username":self.getUsername()},{ 
+		#print(user)
+		mongo.db.users.update({"username":self.getUsername()},{ 
 			"$push": {"following":user}
 		});
 		return {"status":"ok"}
@@ -117,7 +118,7 @@ class User(object):
 	"""
 
 	#THIS FUNCTION IS BROKEN, FIX IT LATER
-	def getOldPosts(self,page):
+	def getOldPosts(self,page,count):
 		find={
 			"$and":[  
 				{"to":{"$in": [self.getUsername()]}},  
@@ -136,7 +137,9 @@ class User(object):
 		find["$and"][1]["$or"].append({"votes":down})
 
 
-		posts=mongo.db.posts.find(find).sort([("_id",-1)]).skip(int(page)*10).limit(10)
+		posts=mongo.db.posts.find(find).sort([("_id",-1)]).skip(int(page)*10).limit(10*count)
+
+		#posts=mongo.db.posts.find(find).sort([("_id",-1)]).skip(int(page)*10).limit(10)
 
 		
 
