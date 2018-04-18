@@ -13,6 +13,7 @@ class User(object):
 	user={}
 	
 
+
 	def __init__(self,sessionKey,request):
 		self.sessionKey=sessionKey
 		self.request=request
@@ -230,7 +231,8 @@ def login(username,password):
 				'sessionKey':key
 			}
 		})
-		return key
+		user=User(key,None)
+		#return key
 	return user
 
 

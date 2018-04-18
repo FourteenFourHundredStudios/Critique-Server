@@ -4,7 +4,7 @@ def getMutuals(username):
     return     [
         { 
             "$match" : {
-                "username" : "marc"
+                "username" : username
             }
         }, 
         { 

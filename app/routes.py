@@ -41,11 +41,11 @@ def send_js(path):
 @app.route('/login', methods=['POST'])
 def login():
 	#print(request.data);
-	loginVal=UserManager.login(request.json['username'],request.json['password'])
-	if loginVal != None:
+	user=UserManager.login(request.json['username'],request.json['password'])
+	if user != None:
 		#response = make_response(redirect('/home'))
 		#response.set_cookie('sessionKey', str(loginVal))
-		return jsonify({"status":"ok", "apiKey":str(loginVal)})
+		return jsonify({"status":"ok", "apiKey":str(user.getAttribute("sessionKey")),"mutuals":user.getMutuals()[0]["mutuals"]})
 	else:
 		return jsonify({"status":"error", "message":"invalid username or password!"})
 
@@ -79,6 +79,7 @@ def setPatch():
 @app.route('/getPosts', methods=['POST'])
 @UserManager.validateUser
 def getPosts(user):
+	#print (user.getUsername())
 	return JSONEncoder().encode(user.getPosts())
 
 
@@ -156,6 +157,17 @@ def rest():
 		"score":2342,
 		"following":["marc","john","adam","test","snakes"]
 	})
+
+	mongo.db.users.insert({
+		"username":"adam",
+		"password":"nohash",
+		"sessionKey":"6789098765678",
+		"patch":"default.png",
+		"requiredPostIds":[],
+		"score":-1000,
+		"following":["marc"]
+	})
+
 
 	mongo.db.users.insert({
 		"username":"noah",
