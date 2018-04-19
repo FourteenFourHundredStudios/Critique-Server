@@ -45,7 +45,7 @@ def login():
 	if user != None:
 		#response = make_response(redirect('/home'))
 		#response.set_cookie('sessionKey', str(loginVal))
-		return jsonify({"status":"ok", "apiKey":str(user.getAttribute("sessionKey")),"mutuals":user.getMutuals()[0]["mutuals"]})
+		return jsonify({"status":"ok", "apiKey":str(user.getAttribute("sessionKey")),"score":str(user.getAttribute("score")),"mutuals":user.getMutuals()[0]["mutuals"]})
 	else:
 		return jsonify({"status":"error", "message":"invalid username or password!"})
 
