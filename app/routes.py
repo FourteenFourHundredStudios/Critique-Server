@@ -29,7 +29,7 @@ def index():
 @app.route('/search/<username>', methods=['GET','POST'])
 def doSearch(username):
 	users=list(mongo.db.users.find({"username":{"$regex": username}}))
-	return jsonify({"results":[{"username":user["username"]} for user in users]})
+	return jsonify({"results":[{"username":user["username"],"score":user["score"]} for user in users]})
 
 
 
