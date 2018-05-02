@@ -41,7 +41,18 @@ class User(object):
 		return user in list(mongo.db.users.distinct("following",{"username":user})) or user==self.getUsername() or user=="self"
 		
 	def getMutuals(self):
-		return list(mongo.db.users.aggregate(mutuals.getMutuals(self.getUsername())))
+		following=self.getAttribute("following")
+		mutuals = list(mongo.db.users.find({"username":{"$in":following}}))
+		results = []
+		for mutual in mutuals:
+			user = {}
+			user["username"]=mutual["username"]
+			user["score"]=mutual["score"]
+			user["isMutual"]= (self.getUsername() in mutual["following"])
+			results.append(user)
+		return results
+
+		#return list(mongo.db.users.aggregate(mutuals.getMutuals(self.getUsername())))
 		
 
 	def sendPost(self,params):
