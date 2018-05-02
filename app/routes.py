@@ -121,6 +121,12 @@ def getPost(user):
 def follow(user):
 	return JSONEncoder().encode(user.follow(request.json["user"]))
 
+
+@app.route('/unfollow', methods=['POST'])
+@UserManager.validateUser
+def unfollow(user):
+	return JSONEncoder().encode(user.unfollow(request.json["user"]))
+
 @app.route('/sendPost', methods=['POST'])
 @UserManager.validateUser
 def sendPost(user):
@@ -150,7 +156,7 @@ def rest():
 		"patch":"default.png",
 		"requiredPostIds":[],
 		"score":1000,
-		"following":["john","noah","marc","adam"]
+		"following":["john","noah","marc"]
 	})
 	
 	mongo.db.users.insert({
@@ -182,6 +188,16 @@ def rest():
 		"requiredPostIds":[],
 		"score":3333,
 		"following":["marc","john","adam","test","snakes"]
+	})
+
+	mongo.db.users.insert({
+		"username":"aCritqueGuy",
+		"password":"nohash",
+		"sessionKey":"32r3efw",
+		"patch":"1523395202020.png",
+		"requiredPostIds":[],
+		"score":45432,
+		"following":[]
 	})
 
 	#mongo.db.posts.insert({"username":"marc","title":"Real Post!","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"This is the first Critique post that has ever been rendered from the server! Whoa!!"})
