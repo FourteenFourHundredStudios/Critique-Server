@@ -28,26 +28,30 @@ class User(object):
 	def isValid(self):
 		return self.user != None
 
-	def follow(self,user):
+	def follow(self,user,following):
 		#DO CHECK TO MAKE SURE USER EXISTS lol
-		if not user in self.getAttribute("following"):
-			mongo.db.users.update({"username":self.getUsername()},{ 
-				"$addToSet": {"following":user}
-			});
-			return {"status":"ok"}
-		else:
-			return {"status":"error","message":"you are already following this user!"}
+		if following:
 
-	def unfollow(self,user):
-		#DO CHECK TO MAKE SURE USER EXISTS lol
-		
-		if user in self.getAttribute("following"):
-			mongo.db.users.update({"username":self.getUsername()},{ 
-				"$pull": {"following":user}
-			});
-			return {"status":"ok"}
+			if not user in self.getAttribute("following"):
+				mongo.db.users.update({"username":self.getUsername()},{ 
+					"$addToSet": {"following":user}
+				});
+				return {"status":"ok"}
+			else:
+				return {"status":"error","message":"you are already following this user!"}
 		else:
-			return {"status":"error","message":"you weren't following this user!"}
+
+			if user in self.getAttribute("following"):
+				mongo.db.users.update({"username":self.getUsername()},{ 
+					"$pull": {"following":user}
+				});
+				return {"status":"ok"}
+			else:
+				return {"status":"error","message":"you weren't following this user!"}
+
+
+		
+		
 
 
 	def isMutual(self,user):

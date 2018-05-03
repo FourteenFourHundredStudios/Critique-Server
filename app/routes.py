@@ -119,13 +119,9 @@ def getPost(user):
 @app.route('/follow', methods=['POST'])
 @UserManager.validateUser
 def follow(user):
-	return JSONEncoder().encode(user.follow(request.json["user"]))
+	return JSONEncoder().encode(user.follow(request.json["user"],request.json["following"]))
 
 
-@app.route('/unfollow', methods=['POST'])
-@UserManager.validateUser
-def unfollow(user):
-	return JSONEncoder().encode(user.unfollow(request.json["user"]))
 
 @app.route('/sendPost', methods=['POST'])
 @UserManager.validateUser
