@@ -201,7 +201,7 @@ def rest():
 	
 
 	for i in range(5):
-		mongo.db.posts.insert({"username":"marc","title":"Test post "+str(i),"type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"http://google.com/"})
+		mongo.db.posts.insert({"username":"marc","title":"test","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"Change my mind."})
 
 	mongo.db.posts.insert({"username":"marc","title":"one","type":"text","seen":[],"votes":{},"to":["marc","john"],"content":"http://google.com/"})
 
