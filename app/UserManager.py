@@ -7,12 +7,11 @@ from flask import jsonify
 from app import mutuals
 from bson.objectid import ObjectId
 
-class User(object):
-	sessionKey=None
-	request=None
-	user={}
-	
 
+class User(object):
+	sessionKey = None
+	request = None
+	user={}
 
 	def __init__(self,sessionKey,request):
 		self.sessionKey=sessionKey
@@ -73,7 +72,7 @@ class User(object):
 		
 
 	def sendPost(self,params):
-		#DO CHECKS FOR THIGS LIKE LENGTH AND VALID TYPE, ETC 
+		#DO CHECKS FOR THIGS LIKE LENGTH AND VALID TYPE, ETC
 		for user in params["to"]:
 			if not self.isMutual(user):
 				return {"status":"error", "message":str(user)+" is not your mutual or does not exist!"}
@@ -93,7 +92,7 @@ class User(object):
 	#potentially move to a celery task or something
 	def castVotes(self,votes):
 
-		ids=[]
+		ids = []
 
 		for vote in votes:
 			ids.append(ObjectId(vote.get("id")))

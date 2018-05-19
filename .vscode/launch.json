@@ -9,6 +9,7 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": false,
+
             "pythonPath": "/Library/Frameworks/Python.framework/Versions/3.6/bin/python3",
             "program": "${workspaceFolder}/run.py",
             "cwd": "${workspaceFolder}",
