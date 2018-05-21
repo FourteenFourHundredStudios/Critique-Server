@@ -68,24 +68,11 @@ def setPatch():
 		return jsonify({"status":"error","message":"could not save image!"})
 
 
-@app.route('/getPosts', methods=['POST'])
-@UserManager.validateUser
-def getPosts(user):
-	return JSONEncoder().encode(user.getPosts())
 
 
 
 
-@app.route('/isMutual', methods=['POST'])
-@UserManager.validateUser
-def isMutual(user):
-	return JSONEncoder().encode(user.isMutual(request.json["user"]))
 
-
-@app.route('/getMutuals', methods=['POST'])
-@User.validate_user
-def get_follows(user):
-	return user.get_mutuals()
 
 @app.route('/getArchive', methods=['POST'])
 @UserManager.validateUser
@@ -93,22 +80,9 @@ def getArchive(user):
 	return JSONEncoder().encode({"archive":user.getOldPosts(request.json["page"],request.json["count"])})
 
 
-@app.route('/getPost', methods=['POST'])
-@UserManager.validateUser
-def getPost(user):
-	return JSONEncoder().encode(user.getPost(request.json["id"]))
-
-@app.route('/follow', methods=['POST'])
-@UserManager.validateUser
-def follow(user):
-	return JSONEncoder().encode(user.follow(request.json["user"],request.json["following"]))
 
 
 
-@app.route('/sendPost', methods=['POST'])
-@UserManager.validateUser
-def sendPost(user):
-	return JSONEncoder().encode(user.sendPost(request.json))
 
 @app.route('/invalid')
 def invalid():

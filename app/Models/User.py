@@ -47,7 +47,7 @@ class User(Model):
 	def follow(self, user, following):
 		# DO CHECK TO MAKE SURE USER EXISTS
 		if following:
-			if not user in self.following:
+			if user not in self.following:
 				mongo.db.users.update({"username": self.username}, {
 					"$addToSet": {"following": user}
 				});
@@ -62,7 +62,6 @@ class User(Model):
 				return Reply().ok()
 			else:
 				return Reply().error("you weren't following this user!")
-
 
 	def is_mutual(self, user):
 		return user in list(
@@ -79,44 +78,28 @@ class User(Model):
 				"isMutual": mutual.is_mutual(self.username)
 			}
 			results.append(user)
+		return results
 
-		return Reply("ok",results)
+	def ids_required(self, ids):
+		return set(ids).issubset(set(self.requiredPostIds))
 
-
-	def send_post(self, params):
-		post = Post.create_post(self,params["to"],params["content"],params["title"],params["type"])
-		return post.send()
-
-	# potentially move to a celery task or something
-	def castVotes(self, votes):
-
+	def cast_votes(self, votes):
 		ids = []
-
 		for vote in votes:
-			ids.append(ObjectId(vote.get("id")))
+			ids.append(vote["id"])
 			if vote["vote"] != 0 and vote["vote"] != 1:
-				return {"status": "error", "message": "Invalid vote IDs!"}
+				return Reply("Invalid vote IDs!").error()
 
-		if not set(ids).issubset(set(self.user["requiredPostIds"])):
-			return {"status": "error", "message": "Invalid vote IDs!"}
+		if not self.ids_required(ids):
+			return Reply("Invalid vote IDs!").error("Invalid vote IDs!")
 
-		mongo.db.users.update({"username": self.getUsername()}, {
-			"$pull": {"requiredPostIds": {"$in": ids}}
-		})
+		mongo.db.users.update({"username": self.username}, {"$pull": {"requiredPostIds": {"$in": ids}}})
 
-		"""
-		for vote in votes:
-			mongo.db.posts.update({ "_id": ObjectId(vote["id"])},{ 
-				"$push": {"seen":self.getUsername()} ,
-				"$set": {"votes."+self.getUsername(): vote["vote"] } } ,upsert=False)
-		"""
+		posts = Post.create_from_db_ids(ids)
+		for i, post in enumerate(posts):
+			post.vote(self, votes[i]["id"])
 
-		# change to update_many later
-		for vote in votes:
-			mongo.db.posts.update({"_id": ObjectId(vote["id"])}, {
-				"$set": {"votes." + self.getUsername(): vote["vote"]}}, upsert=False)
-
-		return {"status": "ok"}
+		return Reply().ok()
 
 	"""
 		castVotes example API call:
@@ -165,54 +148,33 @@ class User(Model):
 		# DO THING WHERE YOU DELETE OLD FILE FIRSTTT!!!!!!
 		mongo.db.users.update({"username": self.getUsername()}, {"$set": {"patch": filename}})
 
-	def getPost(self, id):
+	def get_post(self, db_id):
 		find = {
 			"$and": [
-				{"_id": ObjectId(id)},
+				{"_id": ObjectId(db_id)},
 				{"to": {"$in": [self.getUsername()]}},
 				{"seen": {"$in": [self.getUsername()]}}
 			]
 		}
-		return list(mongo.db.posts.find_one(find))
+		results = mongo.db.posts.find(find)
+		if results is not None:
+			return Reply(Post.create_from_db_obj(results)).ok()
+		else:
+			return Reply("Could not find post with that Id!").error()
 
-	def getPosts(self):
-		# split into several functions
-
-		# in vote method make sure to check that the posts your validating were sent to you, AND you have not voted yet
-		# print(self.user["requiredPostIds"])
-
-		if len(self.user["requiredPostIds"]) > 3:
-			return {"status": "error", "message": "You cannot have more than 1 unvoted post!"}
-
+	def get_queue(self):
+		if len(self.requiredPostIds) > 3:
+			return Reply("You cannot have more than 3 un-voted posts!").error()
 		find = {
 			"$and": [
-				{"to": {"$in": [self.getUsername()]}},
-				{"seen": {"$nin": [self.getUsername()]}}
+				{"to": {"$in": [self.username]}},
+				{"seen": {"$nin": [self.username]}}
 			]
 		}
-		update = {"$push": {"seen": self.getUsername()}}
-
-		# amount of posts you can see at one time without voting on all prior posts is 5
-		posts = mongo.db.posts.find(find).limit(5)
-
-		postsValue = list(posts)
-
-		posts.rewind()
-		ids = [post.get("_id") for post in posts]
-
-		mongo.db.posts.update_many({"_id": {"$in": ids}}, {
-			"$push": {"seen": self.getUsername()},
-		}, upsert=False)
-
-		# mongo.db.posts.update_many({ "_id": { "$in": ids } },update)
-
-		mongo.db.users.update({"username": self.getUsername()}, {"$push": {"requiredPostIds": {"$each": ids}}})
-
-		# remove votes so you can't see who voted for what until you've voted, and replace it w/ the number of votes
-		for post in postsValue:
-			post["votes"] = len(post["votes"])
-
-		return {"status": "ok", "message": postsValue}
+		posts = Post.create_from_db_obj(mongo.db.posts.find(find).limit(5))
+		Post.mark_seen(self, posts)
+		post_jsons = [post.get_safe_json() for post in posts]
+		return Reply(post_jsons).ok()
 
 	@staticmethod
 	def get_from_username(username):
@@ -236,16 +198,13 @@ class User(Model):
 			users = list(db_obj)
 			return [User.create_from_db_obj(user) for user in users]
 
-
 	@staticmethod
 	def login(username, password):
 		user = mongo.db.users.find_one({"username": username, "password": password})
-
 		if user is None:
 			return None
 		user = User.create_from_db_obj(user)
 		user.new_session()
-
 		return user.get_safe_user()
 
 	@staticmethod

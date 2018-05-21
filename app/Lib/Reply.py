@@ -12,20 +12,15 @@ class JSONEncoder(json.JSONEncoder):
 
 class Reply (object):
 
-	def __init__(self, message):
+	def __init__(self, message=None):
 		self.message = message
-
-	def ok_message(self):
-		result = {
-			"status": "ok",
-			"message": self.message
-		}
-		return JSONEncoder().encode(result)
 
 	def ok(self):
 		result = {
 			"status": "ok",
 		}
+		if self.message is not None:
+			result["message"]: self.message
 		return JSONEncoder().encode(result)
 
 	def error(self):

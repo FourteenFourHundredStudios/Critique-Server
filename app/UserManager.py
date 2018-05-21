@@ -77,13 +77,13 @@ class User(object):
 			if not self.isMutual(user):
 				return {"status":"error", "message":str(user)+" is not your mutual or does not exist!"}
 		mongo.db.posts.insert({
-			"username":self.getUsername(),
-			"seen":[],
-			"votes":{},
-			"to":params["to"],
-			"content":params["content"],
-			"title":params["title"],
-			"type":params["type"]
+			"username": self.getUsername(),
+			"seen": [],
+			"votes": {},
+			"to": params["to"],
+			"content": params["content"],
+			"title": params["title"],
+			"type": params["type"]
 		})
 		return {"status":"ok"}
 
