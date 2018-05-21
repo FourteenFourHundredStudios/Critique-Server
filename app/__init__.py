@@ -17,6 +17,6 @@ app.config['UPLOADED_PHOTOS_DEST'] = 'images'
 
 mongo = PyMongo(app)
 
-#app.config.from_object('config')
+
 
 from app import routes

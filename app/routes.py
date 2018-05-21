@@ -12,13 +12,10 @@ import base64
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 from flask import send_file
 
-#self IS A RESTRICTED USERNAME THAT REFERES TO yourself
+from app.Lib.Reply import Reply
+from app.Models.User import User
 
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
+
 
 
 
@@ -38,16 +35,8 @@ def send_js(path):
 	return send_from_directory('static', path)
 
 
-@app.route('/login', methods=['POST'])
-def login():
-	#print(request.data);
-	user=UserManager.login(request.json['username'],request.json['password'])
-	if user != None:
-		#response = make_response(redirect('/home'))
-		#response.set_cookie('sessionKey', str(loginVal))
-		return jsonify({"status":"ok", "apiKey": str(user.getAttribute("sessionKey")),"score": str(user.getAttribute("score")),"mutuals":user.getMutuals()})
-	else:
-		return jsonify({"status":"error", "message":"invalid username or password!"})
+
+
 
 @app.route('/getPatch/<apiKey>/<username>', methods=["GET",'POST'])
 def getPatch(apiKey,username):
@@ -82,28 +71,21 @@ def setPatch():
 @app.route('/getPosts', methods=['POST'])
 @UserManager.validateUser
 def getPosts(user):
-	#print (user.getUsername())
 	return JSONEncoder().encode(user.getPosts())
 
 
-@app.route('/castVotes', methods=['POST'])
-@UserManager.validateUser
-def castVotes(user):
-	return JSONEncoder().encode(user.castVotes(request.json["votes"]))
+
 
 @app.route('/isMutual', methods=['POST'])
 @UserManager.validateUser
 def isMutual(user):
 	return JSONEncoder().encode(user.isMutual(request.json["user"]))
 
+
 @app.route('/getMutuals', methods=['POST'])
-@UserManager.validateUser
-def getFollows(user):
-	res={
-		"mutuals":user.getMutuals(),
-		"status":"ok"
-	}
-	return JSONEncoder().encode(res)
+@User.validate_user
+def get_follows(user):
+	return user.get_mutuals()
 
 @app.route('/getArchive', methods=['POST'])
 @UserManager.validateUser
@@ -202,6 +184,7 @@ def rest():
 		mongo.db.posts.insert({"username":"marc","title":"test","type":"link","seen":[],"votes":{},"to":["marc","john"],"content":"http://google.com/"})
 
 	#mongo.db.posts.insert({"username":"marc","title":"one","type":"link","seen":[],"votes":{},"to":["marc","john"],"content":"http://google.com/"})
+
 
 
 	return JSONEncoder().encode({"status":"nuked"})

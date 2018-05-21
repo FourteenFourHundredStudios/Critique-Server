@@ -1,4 +1,21 @@
 
+"""
+
+hypothetical vote function
+
+def vote(user,votes):
+    posts = []
+    for vote in votes:
+        post = Post.getFromId(votes.id)
+        posts.append(post)
+        if not post.required:
+            return "error"
+    for post in posts:
+        post.vote(user)
+
+"""
+
+
 
 def getMutuals(username):
     return     [
