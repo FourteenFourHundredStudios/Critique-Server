@@ -266,21 +266,3 @@ def login(username,password):
 
 
 
-def validateUser(api_method):
-	@wraps(api_method)
-	def check_api_key():
-		if "debug" in request.json:
-			u=mongo.db.users.find_one({"username":request.json["debug"]})
-			user = User(u["sessionKey"],request)
-			return api_method(user)
-		elif "apiKey" in request.json:
-			apiKey = request.json["apiKey"]
-			user = User(apiKey,request)
-
-			if user.isValid():
-				return api_method(user)
-			else:
-				return jsonify({"status":"error", "message":"Invalid apiKey!"})
-		else:
-			return jsonify({"status":"error", "message":"Invalid apiKey!"})
-	return check_api_key

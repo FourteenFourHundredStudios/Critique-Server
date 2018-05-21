@@ -29,11 +29,12 @@ class Post(Model):
 			"to": self.to,
 			"content": self.content,
 			"title": self.title,
-			"type": self._type
+			"type": self.type
 		})
 		return Reply().ok()
 
 	def get_safe_json(self):
+
 		return {
 			"username": self.username,
 			"seen": self.seen,
@@ -41,7 +42,7 @@ class Post(Model):
 			"to": self.to,
 			"content": self.content,
 			"title": self.title,
-			"type": self._type
+			"type": self.type
 		}
 
 	def vote(self, requester, vote):
@@ -62,17 +63,18 @@ class Post(Model):
 		return Post.create_from_db_obj(results)
 
 	@staticmethod
+	# db_id, username, to, content, title, type, seen, votes
 	def create_from_db_obj(db_obj):
 		if not isinstance(db_obj, pymongo.cursor.Cursor):
 			post_obj = Post(
 				db_obj["_id"],
 				db_obj["username"],
-				db_obj["seen"],
-				db_obj["votes"],
 				db_obj["to"],
 				db_obj["content"],
 				db_obj["title"],
-				db_obj["type"]
+				db_obj["type"],
+				db_obj["seen"],
+				db_obj["votes"]
 			)
 			return post_obj
 		else:
@@ -81,6 +83,6 @@ class Post(Model):
 
 	@staticmethod
 	def create_post(requester, to, content, title, type):
-		return Post(requester, None, None, requester.username, to, content, title, type, {requester.username: 1})
+		return Post(-1, requester.username, to, content, title, type, [], {requester.username: 1})
 
 

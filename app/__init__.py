@@ -7,6 +7,7 @@ from flask_uploads import UploadSet, configure_uploads, IMAGES
 #pip install Flask-Uploads
 
 # Initialize the app
+
 app = Flask(__name__, instance_relative_config=True)
 
 app.config['MONGO_DBNAME'] = 'Critique'
@@ -17,6 +18,7 @@ app.config['UPLOADED_PHOTOS_DEST'] = 'images'
 
 mongo = PyMongo(app)
 
-
-
 from app import routes
+from app.Routes import UserRoutes
+
+

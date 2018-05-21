@@ -12,7 +12,7 @@ import base64
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 from flask import send_file
 
-from app.Lib.Reply import Reply
+from app.Lib.Reply import Reply, JSONEncoder
 from app.Models.User import User
 
 
@@ -75,7 +75,7 @@ def setPatch():
 
 
 @app.route('/getArchive', methods=['POST'])
-@UserManager.validateUser
+
 def getArchive(user):
 	return JSONEncoder().encode({"archive":user.getOldPosts(request.json["page"],request.json["count"])})
 
@@ -89,7 +89,7 @@ def invalid():
 	return "bad username or password"
 
 @app.route('/home')
-@UserManager.validateUser
+
 def home(user):
 	return "Hello, "+user.getUsername()
 

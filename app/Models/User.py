@@ -53,7 +53,7 @@ class User(Model):
 				});
 				return Reply().ok()
 			else:
-				Reply().error("you are already following this user!")
+				Reply("you are already following this user!").error()
 		else:
 			if user in self.following:
 				mongo.db.users.update({"username": self.username}, {
@@ -61,23 +61,21 @@ class User(Model):
 				});
 				return Reply().ok()
 			else:
-				return Reply().error("you weren't following this user!")
+				return Reply("you weren't following this user!").error()
 
 	def is_mutual(self, user):
-		return user in list(
-			mongo.db.users.distinct("following", {"username": user})) or user == self.username or user == "self"
+		return user in self.following
 
 	def get_mutuals(self):
 		query = mongo.db.users.find({"username": {"$in": self.following}})
 		mutuals = User.create_from_db_obj(query)
-		results = []
-		for mutual in mutuals:
-			user = {
+		results = [{
 				"username": mutual.username,
 				"score": mutual.score,
 				"isMutual": mutual.is_mutual(self.username)
 			}
-			results.append(user)
+			for mutual in mutuals
+		]
 		return results
 
 	def ids_required(self, ids):
@@ -163,7 +161,7 @@ class User(Model):
 			return Reply("Could not find post with that Id!").error()
 
 	def get_queue(self):
-		if len(self.requiredPostIds) > 3:
+		if len(self.required_post_ids) > 3:
 			return Reply("You cannot have more than 3 un-voted posts!").error()
 		find = {
 			"$and": [
@@ -172,6 +170,9 @@ class User(Model):
 			]
 		}
 		posts = Post.create_from_db_obj(mongo.db.posts.find(find).limit(5))
+
+
+
 		Post.mark_seen(self, posts)
 		post_jsons = [post.get_safe_json() for post in posts]
 		return Reply(post_jsons).ok()
@@ -207,7 +208,7 @@ class User(Model):
 		user.new_session()
 		return user.get_safe_user()
 
-	@staticmethod
+
 	def validate_user(api_method):
 		@wraps(api_method)
 		def check_api_key():

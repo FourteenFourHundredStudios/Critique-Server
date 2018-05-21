@@ -17,15 +17,15 @@ class Reply (object):
 
 	def ok(self):
 		result = {
-			"status": "ok",
+			"status": "ok"
 		}
 		if self.message is not None:
-			result["message"]: self.message
+			result["response"] = self.message
 		return JSONEncoder().encode(result)
 
 	def error(self):
 		result = {
 			"status": "error",
-			"message": self.message
+			"response": self.message
 		}
 		return JSONEncoder().encode(result)

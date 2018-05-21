@@ -1,11 +1,11 @@
-from app import app, UserManager
+from app import app
 from flask import request
-
 from app.Lib.Reply import Reply
-from app.Models import User
+from app.Models.User import User
 from app.Models.Post import Post
 
 
+# ok
 @app.route('/login', methods=['POST'])
 def login():
 	user = User.login(request.json['username'],request.json['password'])
@@ -16,15 +16,15 @@ def login():
 
 
 @app.route('/castVotes', methods=['POST'])
-@UserManager.validateUser
+@User.validate_user
 def cast_votes(user):
 	return user.cast_votes(request.json["votes"])
 
-
+# ok
 @app.route('/getMutuals', methods=['POST'])
 @User.validate_user
 def get_mutuals(user):
-	return Reply(user.get_mutuals).ok()
+	return Reply(user.get_mutuals()).ok()
 
 
 @app.route('/follow', methods=['POST'])
@@ -36,7 +36,13 @@ def follow(user):
 @app.route('/sendPost', methods=['POST'])
 @User.validate_user
 def send_post(user):
-	return Post.create_post(user, request.json["to"], request.json["title"], request.json["type"]).send(user)
+	return Post.create_post(
+		user,
+		request.json["to"],
+		request.json["content"],
+		request.json["title"],
+		request.json["type"]
+	).send(user)
 
 
 @app.route('/getQueue', methods=['POST'])
