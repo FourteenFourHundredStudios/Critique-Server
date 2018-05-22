@@ -34,7 +34,6 @@ class Post(Model):
 		return Reply().ok()
 
 	def get_safe_json(self):
-
 		return {
 			"username": self.username,
 			"seen": self.seen,
@@ -56,11 +55,14 @@ class Post(Model):
 			"$push": {"seen": requester.username},
 		}, upsert=False)
 
-
 	@staticmethod
 	def create_from_db_ids(ids):
 		results = mongo.db.posts.find({"_id": {"$in": ids}})
 		return Post.create_from_db_obj(results)
+
+	@staticmethod
+	def get_ids(posts):
+		return [post.db_id for post in posts]
 
 	@staticmethod
 	# db_id, username, to, content, title, type, seen, votes
@@ -82,7 +84,7 @@ class Post(Model):
 			return [Post.create_from_db_obj(post) for post in posts]
 
 	@staticmethod
-	def create_post(requester, to, content, title, type):
+	def create_post(requester, to, content, title, type="text"):
 		return Post(-1, requester.username, to, content, title, type, [], {requester.username: 1})
 
 

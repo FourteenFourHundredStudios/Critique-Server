@@ -6,7 +6,6 @@ from functools import wraps
 from flask import request
 from flask import make_response, redirect
 from flask import jsonify
-from app import mutuals
 from bson.objectid import ObjectId
 
 from app.Lib.Reply import Reply
@@ -79,17 +78,17 @@ class User(Model):
 		return results
 
 	def ids_required(self, ids):
-		return set(ids).issubset(set(self.requiredPostIds))
+		return set(ids).issubset(set(self.required_post_ids))
 
 	def cast_votes(self, votes):
 		ids = []
 		for vote in votes:
-			ids.append(vote["id"])
+			ids.append(ObjectId(vote["id"]))
 			if vote["vote"] != 0 and vote["vote"] != 1:
 				return Reply("Invalid vote IDs!").error()
 
 		if not self.ids_required(ids):
-			return Reply("Invalid vote IDs!").error("Invalid vote IDs!")
+			return Reply("Invalid vote IDs!").error()
 
 		mongo.db.users.update({"username": self.username}, {"$pull": {"requiredPostIds": {"$in": ids}}})
 
@@ -99,50 +98,23 @@ class User(Model):
 
 		return Reply().ok()
 
-	"""
-		castVotes example API call:
-
-		{
-			"apiKey": "2230894",
-			"votes" : [{"id":"5aa061abf7494320c0fd1497","vote":1}]
-		}
-
-
-		{
-			"apiKey": "2230894",
-			"votes" : [{"id":"5aa06733f749432182f4c363","vote":1},{"id":"5aa067daf7494321941d4952","vote":-1}]
-		}
-	"""
-
-	# THIS FUNCTION IS BROKEN, FIX IT LATER
-	def getOldPosts(self, page, count):
+	def get_archive(self, page, count):
 		find = {
 			"$and": [
-				{"to": {"$in": [self.getUsername()]}},
+				{"to": {"$in": [self.username]}},
 				{"$or": [
-
+					{"votes": {self.username: 1}},
+					{"votes": {self.username: 0}}
 				]}
 			]
 		}
-
-		up = {}
-		down = {}
-		up[self.getUsername()] = 1
-		down[self.getUsername()] = 0
-
-		find["$and"][1]["$or"].append({"votes": up})
-		find["$and"][1]["$or"].append({"votes": down})
-
 		posts = mongo.db.posts.find(find).sort([("_id", -1)]).skip(int(page) * 10).limit(10 * count)
-
-		# posts=mongo.db.posts.find(find).sort([("_id",-1)]).skip(int(page)*10).limit(10)
-
 		return list(posts)
 
-	def getPatchPath(self):
-		return "../images/" + self.user["patch"]
+	def get_patch_path(self):
+		return "../images/" + self.patch
 
-	def setPatch(self, filename):
+	def set_patch(self, filename):
 		# DO THING WHERE YOU DELETE OLD FILE FIRSTTT!!!!!!
 		mongo.db.users.update({"username": self.getUsername()}, {"$set": {"patch": filename}})
 
@@ -170,12 +142,34 @@ class User(Model):
 			]
 		}
 		posts = Post.create_from_db_obj(mongo.db.posts.find(find).limit(5))
-
-
-
 		Post.mark_seen(self, posts)
+		mongo.db.users.update({"username": self.username}, {"$push": {"requiredPostIds": {"$each": Post.get_ids(posts)}}})
 		post_jsons = [post.get_safe_json() for post in posts]
 		return Reply(post_jsons).ok()
+
+	@staticmethod
+	def create_new_user(username, password, validating=True, patch="default.png", required_post_ids=[], score=0, following=[]):
+		print("Don't forget to hash the passwords!")
+		if validating:
+			if len(username) < 6:
+				return Reply("Your username must be at least 6 characters!").error()
+			elif len(password) < 6:
+				return Reply("Your password must be at least 6 characters!").error()
+		try:
+			following.append(username)
+			mongo.db.users.insert({
+				"username": username,
+				"password": password,
+				"patch": patch,
+				"sessionKey": None,
+				"requiredPostIds": required_post_ids,
+				"score": score,
+				"following": following
+			})
+		except pymongo.errors.PyMongoError as e:
+			print(e)
+			return Reply("This username is already taken!").error()
+		return Reply().ok()
 
 	@staticmethod
 	def get_from_username(username):
@@ -208,7 +202,7 @@ class User(Model):
 		user.new_session()
 		return user.get_safe_user()
 
-
+	@staticmethod
 	def validate_user(api_method):
 		@wraps(api_method)
 		def check_api_key():
