@@ -1,4 +1,6 @@
 import pymongo
+import bcrypt
+
 
 from app import mongo
 import random
@@ -33,7 +35,6 @@ class User(Model):
 			}
 		})
 		self.session_key = key
-		print(self.session_key)
 
 	def get_safe_user(self):
 		return {
@@ -149,17 +150,21 @@ class User(Model):
 
 	@staticmethod
 	def create_new_user(username, password, validating=True, patch="default.png", required_post_ids=[], score=0, following=[]):
-		print("Don't forget to hash the passwords!")
+
 		if validating:
 			if len(username) < 6:
 				return Reply("Your username must be at least 6 characters!").error()
 			elif len(password) < 6:
 				return Reply("Your password must be at least 6 characters!").error()
 		try:
+			salt = bcrypt.gensalt()
 			following.append(username)
+
+			print(bcrypt.hashpw(password.encode(), salt))
+
 			mongo.db.users.insert({
 				"username": username,
-				"password": password,
+				"password": bcrypt.hashpw(password.encode(), salt),
 				"patch": patch,
 				"sessionKey": None,
 				"requiredPostIds": required_post_ids,
@@ -195,12 +200,15 @@ class User(Model):
 
 	@staticmethod
 	def login(username, password):
-		user = mongo.db.users.find_one({"username": username, "password": password})
-		if user is None:
-			return None
-		user = User.create_from_db_obj(user)
-		user.new_session()
-		return user.get_safe_user()
+		user = mongo.db.users.find_one({"username": username})
+		if user is not None:
+			hash = bcrypt.hashpw(password.encode(), user["password"])
+			if not (str(hash) == str(user["password"])):
+				return None
+			user = User.create_from_db_obj(user)
+			user.new_session()
+			return user.get_safe_user()
+
 
 	@staticmethod
 	def validate_user(api_method):
@@ -217,7 +225,7 @@ class User(Model):
 					user = User.create_from_db_obj(user)
 					return api_method(user)
 				else:
-					return jsonify({"status": "error", "message": "Invalid apiKey!"})
+					return Reply("Invalid apiKey!").error()
 			else:
-				return jsonify({"status": "error", "message": "Invalid apiKey!"})
+				return Reply("Invalid apiKey!").error()
 		return check_api_key

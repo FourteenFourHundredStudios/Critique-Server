@@ -1,3 +1,4 @@
+import bcrypt
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 
 from app import app, mongo
@@ -10,6 +11,10 @@ from app.Models.Post import Post
 # ok
 @app.route('/login', methods=['POST'])
 def login():
+	salt = bcrypt.gensalt()
+
+	print(bcrypt.hashpw(request.json['password'].encode(), salt))
+
 	user = User.login(request.json['username'], request.json['password'])
 	if user is not None:
 		return Reply(user).ok()
