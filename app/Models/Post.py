@@ -22,7 +22,7 @@ class Post(Model):
 		for user in self.to:
 			if not requester.is_mutual(user):
 				return Reply(str(user) + " is not your mutual or does not exist!").error()
-		mongo.db.posts.insert({
+		post={
 			"username": self.username,
 			"seen": self.seen,
 			"votes": self.votes,
@@ -30,11 +30,14 @@ class Post(Model):
 			"content": self.content,
 			"title": self.title,
 			"type": self.type
-		})
+		}
+		mongo.db.posts.insert(post)
+		print(post)
 		return Reply().ok()
 
 	def get_safe_json(self):
 		return {
+			"_id": self.db_id,
 			"username": self.username,
 			"seen": self.seen,
 			"votes": len(self.votes),

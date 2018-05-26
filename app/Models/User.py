@@ -41,7 +41,7 @@ class User(Model):
 			"username": self.username,
 			"sessionKey": self.session_key,
 			"score": self.score,
-			"following": self.following
+			"following": self.get_mutuals()
 		}
 
 	def follow(self, user, following):
@@ -83,6 +83,7 @@ class User(Model):
 
 	def cast_votes(self, votes):
 		ids = []
+		print(votes)
 		for vote in votes:
 			ids.append(ObjectId(vote["id"]))
 			if vote["vote"] != 0 and vote["vote"] != 1:
@@ -96,6 +97,8 @@ class User(Model):
 		posts = Post.create_from_db_ids(ids)
 		for i, post in enumerate(posts):
 			post.vote(self, votes[i]["id"])
+
+
 
 		return Reply().ok()
 
