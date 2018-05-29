@@ -22,6 +22,13 @@ def login():
 		return Reply("Invalid username or password!").error()
 
 
+# maybe
+@app.route('/search/<username>', methods=['POST', 'GET'])
+def search(username):
+	query = User.create_from_db_obj(mongo.db.users.find({"$regex": ".*" + str(username) + ".*"}))
+	users = [(user.get_safe_user() for user in query)]
+	return users
+
 # ok
 @app.route('/castVotes', methods=['POST'])
 @User.validate_user
@@ -69,6 +76,7 @@ def get_queue(user):
 def get_post(user):
 	return user.get_post(request.json["id"])
 
+
 # ok
 @app.route('/getArchive', methods=['POST'])
 @User.validate_user
@@ -79,7 +87,8 @@ def get_archive(user):
 # ok
 @app.route('/getPatch/<username>', methods=["GET", 'POST'])
 def get_patch(username):
-	user = User.create_from_db_obj(mongo.db.users.find_one({"username": username}))
+	user = User.get_from_username(username)
+	print(user)
 	path = user.get_patch_path()
 	return send_file(path, mimetype='image/png')
 
