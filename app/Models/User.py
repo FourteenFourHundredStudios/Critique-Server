@@ -36,13 +36,30 @@ class User(Model):
 		})
 		self.session_key = key
 
-	def get_safe_user(self):
+
+	""" 
+	gets an overview requested by requester
+	"""
+	def get_overview(self, requester):
 		return {
+			"username": self.username,
+			"isMutual": self.is_mutual(requester.username),
+			"score": self.score
+		}
+
+	def get_safe_user(self, omit=[]):
+		user = {
 			"username": self.username,
 			"sessionKey": self.session_key,
 			"score": self.score,
 			"following": self.get_mutuals()
 		}
+
+		if len(omit) is not []:
+			for element in omit:
+				del user[element]
+
+		return user
 
 	def follow(self, user, following):
 		# DO CHECK TO MAKE SURE USER EXISTS
@@ -53,7 +70,7 @@ class User(Model):
 				});
 				return Reply().ok()
 			else:
-				Reply("you are already following this user!").error()
+				return Reply("you are already following this user!").error()
 		else:
 			if user in self.following:
 				mongo.db.users.update({"username": self.username}, {
@@ -69,13 +86,7 @@ class User(Model):
 	def get_mutuals(self):
 		query = mongo.db.users.find({"username": {"$in": self.following}})
 		mutuals = User.create_from_db_obj(query)
-		results = [{
-				"username": mutual.username,
-				"score": mutual.score,
-				"isMutual": mutual.is_mutual(self.username)
-			}
-			for mutual in mutuals
-		]
+		results = [mutual.get_overview(self) for mutual in mutuals]
 		return results
 
 	def ids_required(self, ids):
@@ -211,7 +222,6 @@ class User(Model):
 			user = User.create_from_db_obj(user)
 			user.new_session()
 			return user.get_safe_user()
-
 
 	@staticmethod
 	def validate_user(api_method):

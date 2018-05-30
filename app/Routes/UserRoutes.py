@@ -6,7 +6,7 @@ from flask import request, send_file
 from app.Lib.Reply import Reply
 from app.Models.User import User
 from app.Models.Post import Post
-
+import re
 
 # ok
 @app.route('/login', methods=['POST'])
@@ -23,11 +23,15 @@ def login():
 
 
 # maybe
-@app.route('/search/<username>', methods=['POST', 'GET'])
-def search(username):
-	query = User.create_from_db_obj(mongo.db.users.find({"$regex": ".*" + str(username) + ".*"}))
-	users = [(user.get_safe_user() for user in query)]
-	return users
+@app.route('/search', methods=['POST', 'GET'])
+@User.validate_user
+def search(requester):
+	query = mongo.db.users.find({"username": {"$regex": request.json["search"], "$options": "i"}})
+	users = User.create_from_db_obj(query)
+	overviews = [user.get_overview(requester) for user in users]
+
+	return Reply(overviews).ok()
+
 
 # ok
 @app.route('/castVotes', methods=['POST'])
