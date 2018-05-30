@@ -33,6 +33,11 @@ def search(requester):
 	return Reply(overviews).ok()
 
 
+@app.errorhandler(500)
+def custom500(error):
+	return Reply("Internal Server error!").error()
+
+
 # ok
 @app.route('/castVotes', methods=['POST'])
 @User.validate_user

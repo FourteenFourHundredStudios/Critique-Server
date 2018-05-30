@@ -80,6 +80,9 @@ class User(Model):
 			else:
 				return Reply("you weren't following this user!").error()
 
+
+
+
 	def is_mutual(self, user):
 		return user in self.following
 
