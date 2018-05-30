@@ -1,6 +1,5 @@
 import pymongo
-from bson import ObjectId
-
+from datetime import datetime
 from app import mongo
 from app.Lib.Reply import Reply
 from app.Models.Model import Model
@@ -22,7 +21,7 @@ class Post(Model):
 		for user in self.to:
 			if not requester.is_mutual(user):
 				return Reply(str(user) + " is not your mutual or does not exist!").error()
-		post={
+		post = {
 			"username": self.username,
 			"seen": self.seen,
 			"votes": self.votes,
@@ -48,8 +47,13 @@ class Post(Model):
 		}
 
 	def vote(self, requester, vote):
+		# consider creating vote Model?
 		mongo.db.posts.update({"_id": self.db_id}, {
-			"$set": {"votes." + requester.username: vote}}, upsert=False)
+			"$push": {"votes": {
+				"username": requester.username,
+				"vote": vote,
+				"date": datetime.utcnow()}
+			}}, upsert=False)
 
 	@staticmethod
 	def mark_seen(requester, posts):
@@ -88,6 +92,6 @@ class Post(Model):
 
 	@staticmethod
 	def create_post(requester, to, content, title, type="text"):
-		return Post(-1, requester.username, to, content, title, type, [], {requester.username: 1})
+		return Post(-1, requester.username, to, content, title, type, [], [])
 
 

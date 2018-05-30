@@ -110,24 +110,21 @@ class User(Model):
 
 		posts = Post.create_from_db_ids(ids)
 		for i, post in enumerate(posts):
-			post.vote(self, votes[i]["id"])
-
-
-
+			post.vote(self, votes[i]["vote"])
 		return Reply().ok()
 
 	def get_archive(self, page, count):
 		find = {
 			"$and": [
 				{"to": {"$in": [self.username]}},
-				{"$or": [
-					{"votes": {self.username: 1}},
-					{"votes": {self.username: 0}}
-				]}
+				{"seen": {"$in": [self.username]}},
+				{"votes": {"$elemMatch": {"username": self.username}}},
 			]
 		}
 		posts = mongo.db.posts.find(find).sort([("_id", -1)]).skip(int(page) * 10).limit(10 * count)
 		return list(posts)
+
+
 
 	def get_patch_path(self):
 		return "../images/" + self.patch
