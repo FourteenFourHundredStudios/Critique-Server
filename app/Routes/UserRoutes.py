@@ -33,6 +33,14 @@ def search(requester):
 	return Reply(overviews).ok()
 
 
+@app.route('/setNotificationKey', methods=['POST'])
+@User.validate_user
+def set_n_key(user):
+	mongo.db.users.update({"username": user.username}, {"$set": {"notificationKey": request.json["key"]}}, upsert=True)
+	mongo.db.posts.remove({})
+	return Reply().ok()
+
+
 @app.errorhandler(500)
 def custom500(error):
 	return Reply("Internal Server error!").error()

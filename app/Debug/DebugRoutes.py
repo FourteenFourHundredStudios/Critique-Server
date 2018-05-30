@@ -17,7 +17,7 @@ def hard_reset():
 
 @app.route('/debug/reset', methods=['POST'])
 def reset():
-	mongo.db.users.update({}, { "$set": {"requiredPostIds": [] } }, upsert=True)
+	mongo.db.users.update({}, {"$set": {"requiredPostIds": [] } }, upsert=True)
 	mongo.db.posts.remove({})
 	return Reply().ok()
 
