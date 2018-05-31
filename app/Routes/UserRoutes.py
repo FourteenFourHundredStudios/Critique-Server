@@ -2,10 +2,13 @@ import bcrypt
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 
 from app import app, mongo
-from flask import request, send_file
+from flask import request, send_file, json
 from app.Lib.Reply import Reply
 from app.Models.User import User
 from app.Models.Post import Post
+
+import requests
+
 import re
 
 # ok
@@ -21,6 +24,26 @@ def login():
 	else:
 		return Reply("Invalid username or password!").error()
 
+
+@app.route('/test', methods=['POST', 'GET'])
+def t():
+	url = 'https://fcm.googleapis.com/fcm/send'
+	body = {
+		"data": {
+			"title": "title",
+			"body": "body",
+			"url": "localhost"
+		},
+		"notification": {
+			"title": "My web app name",
+			"body": "message",
+			"content_available": "true"
+		},
+		"to": "dOAtRjJSbkA:APA91bEdS5CvahhZgaqtFcG4PRzf6u2gjAhSjUei0V687eq-IAgm9LX3ZDEFLd6yI7Jf4Im30wA-9jZhjkNpd62bKeCXYyjiBff_9l2MabMHzn2xue3vp7KUgVmGLM1ROOUYhYjef_lz"
+	}
+	headers = {"Content-Type": "application/json", "Authorization": "key=AAAAxe-zm-c:APA91bFo5NK_jcUydvxbwbp1wWD3KCND2ul9xRLvZvi14aNjbAeQi6eJkbdU9wiFwawo7b6Af3rPuqoUH8q0vOfGYA40nRpIC436_SxBx2wbC1pl_CXTkA2Q_ev_yb-RUXQF66hS1YZq"}
+	r= requests.post(url, data=json.dumps(body), headers=headers)
+	return Reply(str(r.reason)).ok()
 
 # maybe
 @app.route('/search', methods=['POST', 'GET'])
