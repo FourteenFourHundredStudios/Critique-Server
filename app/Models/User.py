@@ -17,7 +17,7 @@ from app.Models.Post import Post
 
 class User(Model):
 
-	def __init__(self, username, password, session_key, patch, required_post_ids, score, following):
+	def __init__(self, username, password, session_key, patch, required_post_ids, score, following, info):
 		super().__init__(-1)
 		self.username = username
 		self.password = password
@@ -26,6 +26,7 @@ class User(Model):
 		self.required_post_ids = required_post_ids
 		self.score = score
 		self.following = following
+		self.info = info
 
 	def new_session(self):
 		key = str(hash(random.randrange(100000, 5000000)))
@@ -61,6 +62,14 @@ class User(Model):
 
 		return user
 
+	def add_info(self, key, value):
+		mongo.db.users.update({"username": self.username}, {
+			"$set": {"info."+key: value}
+		});
+
+	def get_info(self, key):
+		return self.info[key]
+
 	def follow(self, user, following):
 		# DO CHECK TO MAKE SURE USER EXISTS
 		if following:
@@ -79,9 +88,6 @@ class User(Model):
 				return Reply().ok()
 			else:
 				return Reply("you weren't following this user!").error()
-
-
-
 
 	def is_mutual(self, user):
 		return user in self.following
@@ -163,7 +169,7 @@ class User(Model):
 		return Reply(post_jsons).ok()
 
 	@staticmethod
-	def create_new_user(username, password, validating=True, patch="default.png", required_post_ids=[], score=0, following=[]):
+	def create_new_user(username, password, validating=True, patch="default.png", required_post_ids=[], score=0, following=[], info={}):
 
 		if validating:
 			if len(username) < 6:
@@ -183,7 +189,8 @@ class User(Model):
 				"sessionKey": None,
 				"requiredPostIds": required_post_ids,
 				"score": score,
-				"following": following
+				"following": following,
+				"info": info
 			})
 		except pymongo.errors.PyMongoError as e:
 			print(e)
@@ -205,7 +212,8 @@ class User(Model):
 				db_obj["patch"],
 				db_obj["requiredPostIds"],
 				db_obj["score"],
-				db_obj["following"]
+				db_obj["following"],
+				db_obj["info"]
 			)
 			return user_obj
 		else:

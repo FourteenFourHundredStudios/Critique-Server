@@ -7,9 +7,9 @@ from app.Lib.Reply import Reply
 from app.Models.User import User
 from app.Models.Post import Post
 
+
 import requests
 
-import re
 
 # ok
 @app.route('/login', methods=['POST'])
@@ -23,6 +23,7 @@ def login():
 		return Reply(user).ok()
 	else:
 		return Reply("Invalid username or password!").error()
+
 
 
 @app.route('/test', methods=['POST', 'GET'])
@@ -45,7 +46,9 @@ def t():
 	r= requests.post(url, data=json.dumps(body), headers=headers)
 	return Reply(str(r.reason)).ok()
 
-# maybe
+
+# ok
+
 @app.route('/search', methods=['POST', 'GET'])
 @User.validate_user
 def search(requester):
