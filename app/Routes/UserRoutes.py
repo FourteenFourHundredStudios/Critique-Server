@@ -6,7 +6,7 @@ from flask import request, send_file
 from app.Lib.Reply import Reply
 from app.Models.User import User
 from app.Models.Post import Post
-import re
+
 
 # ok
 @app.route('/login', methods=['POST'])
@@ -22,7 +22,7 @@ def login():
 		return Reply("Invalid username or password!").error()
 
 
-# maybe
+# ok
 @app.route('/search', methods=['POST', 'GET'])
 @User.validate_user
 def search(requester):
