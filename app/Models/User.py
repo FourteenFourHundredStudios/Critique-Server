@@ -1,11 +1,11 @@
 import pymongo
 import bcrypt
-
+import requests
 
 from app import mongo
 import random
 from functools import wraps
-from flask import request
+from flask import request, json
 from flask import make_response, redirect
 from flask import jsonify
 from bson.objectid import ObjectId
@@ -91,6 +91,32 @@ class User(Model):
 
 	def is_mutual(self, user):
 		return user in self.following
+
+	def send_post_notification(self, user):
+		url = 'https://fcm.googleapis.com/fcm/send'
+		key = 'AAAAxe-zm-c:APA91bFo5NK_jcUydvxbwbp1wWD3KCND2ul9xRLvZvi14aNjbAeQi6eJkbdU9wiFwawo7b6Af3rPuqoUH8q0vOfGYA40nRpIC436_SxBx2wbC1pl_CXTkA2Q_ev_yb-RUXQF66hS1YZq'
+		body = {
+			"data": {
+				"title": "New Critique!",
+				"body": "New Critique from "+user.username,
+				"url": "localhost"
+			},
+			"android": {
+				"priority": "high"
+			},
+			"notification": {
+				"title": "My web app name",
+				"body": "message",
+				"content_available": "true"
+			},
+			"to": self.get_info("notificationKey")
+		}
+		headers = {
+			"Content-Type": "application/json",
+			"Authorization": "key="+key
+		}
+		r = requests.post(url, data=json.dumps(body), headers=headers)
+		return Reply(str(r.reason)).ok()
 
 	def get_mutuals(self):
 		query = mongo.db.users.find({"username": {"$in": self.following}})
