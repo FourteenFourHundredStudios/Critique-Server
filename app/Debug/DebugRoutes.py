@@ -11,7 +11,7 @@ def hard_reset():
 	User.create_new_user("marc", "nohash", validating=False, following=["adam", "john"])
 	User.create_new_user("adam", "password", validating=False, patch="adam.png", following=["marc", "noah"])
 	User.create_new_user("john", "password", validating=False, patch="john.png", following=["adam", "critique"])
-	User.create_new_user("critique", "critique", validating=False, patch="critique.png", following=["adam", "john", "marc","noah"])
+	User.create_new_user("critique", "critique", validating=False, patch="critique.png", following=["adam", "john", "marc", "noah"])
 	return Reply().ok()
 
 
@@ -26,7 +26,7 @@ def reset():
 def posts(username):
 	mongo.db.posts.remove({})
 	user = User.get_from_username("adam")
-	for i in range(15):
+	for i in range(1):
 		post = Post.create_post(user, [username], "This is a Critique post!", "Test post "+str(i))
 		print(post.send(user))
 	return Reply().ok()

@@ -96,20 +96,14 @@ class User(Model):
 		url = 'https://fcm.googleapis.com/fcm/send'
 		key = 'AAAAxe-zm-c:APA91bFo5NK_jcUydvxbwbp1wWD3KCND2ul9xRLvZvi14aNjbAeQi6eJkbdU9wiFwawo7b6Af3rPuqoUH8q0vOfGYA40nRpIC436_SxBx2wbC1pl_CXTkA2Q_ev_yb-RUXQF66hS1YZq'
 		body = {
+
+			"registration_ids": [self.get_info("notificationKey")],
+			"priority": "high",
 			"data": {
-				"title": "New Critique!",
-				"body": "New Critique from "+user.username,
-				"url": "localhost"
-			},
-			"android": {
-				"priority": "high"
-			},
-			"notification": {
-				"title": "My web app name",
-				"body": "message",
-				"content_available": "true"
-			},
-			"to": self.get_info("notificationKey")
+				"title": "Critique",
+				"body": "from "+user.username,
+
+			}
 		}
 		headers = {
 			"Content-Type": "application/json",
@@ -192,6 +186,7 @@ class User(Model):
 		Post.mark_seen(self, posts)
 		mongo.db.users.update({"username": self.username}, {"$push": {"requiredPostIds": {"$each": Post.get_ids(posts)}}})
 		post_jsons = [post.get_safe_json() for post in posts]
+
 		return Reply(post_jsons).ok()
 
 	@staticmethod
@@ -225,7 +220,10 @@ class User(Model):
 
 	@staticmethod
 	def get_from_username(username):
-		user = mongo.db.users.find_one({"username": username})
+		if isinstance(username, list):
+			user = mongo.db.users.find({"username": {"$in": username}})
+		else:
+			user = mongo.db.users.find_one({"username": username})
 		return User.create_from_db_obj(user)
 
 	@staticmethod

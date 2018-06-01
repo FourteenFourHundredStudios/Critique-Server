@@ -42,6 +42,9 @@ def search(requester):
 @app.route('/setNotificationKey', methods=['POST'])
 @User.validate_user
 def set_n_key(user):
+
+	print(request.json["key"])
+
 	user.add_info("notificationKey", request.json["key"])
 	return Reply().ok()
 
@@ -100,6 +103,12 @@ def get_queue(user):
 def get_post(user):
 	return user.get_post(request.json["id"])
 
+
+@app.route('/notify', methods=['POST'])
+@User.validate_user
+def notify(user):
+	user.send_post_notification(user)
+	return Reply().ok()
 
 # ok
 @app.route('/getArchive', methods=['POST'])
