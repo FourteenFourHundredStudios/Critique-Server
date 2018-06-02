@@ -113,9 +113,13 @@ class User(Model):
 		return Reply(str(r.reason)).ok()
 
 	def get_mutuals(self):
+		"""
 		query = mongo.db.users.find({"username": {"$in": self.following}})
 		mutuals = User.create_from_db_obj(query)
 		results = [mutual.get_overview(self) for mutual in mutuals]
+		"""
+		print(self.following)
+		results = [mutual.get_overview(self) for mutual in User.get_from_username(self.following)]
 		return results
 
 	def ids_required(self, ids):
@@ -201,7 +205,7 @@ class User(Model):
 			salt = bcrypt.gensalt()
 			following.append(username)
 
-			print(bcrypt.hashpw(password.encode(), salt))
+			#print(bcrypt.hashpw(password.encode(), salt))
 
 			mongo.db.users.insert({
 				"username": username,

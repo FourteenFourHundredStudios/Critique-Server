@@ -25,8 +25,8 @@ def reset():
 @app.route('/debug/posts/<username>', methods=['POST'])
 def posts(username):
 	mongo.db.posts.remove({})
-	user = User.get_from_username("adam")
-	for i in range(1):
+	user = User.get_from_username("critique")
+	for i in range(20):
 		post = Post.create_post(user, [username], "This is a Critique post!", "Test post "+str(i))
-		print(post.send(user))
+		print(post.send(user,notify=False))
 	return Reply().ok()

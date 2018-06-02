@@ -49,7 +49,7 @@ class Post(Model):
 		r = requests.post(url, data=json.dumps(body), headers=headers)
 		return Reply(str(r.reason)).ok()
 
-	def send(self, requester):
+	def send(self, requester, notify=True):
 		for user in self.to:
 			if not requester.is_mutual(user):
 				return Reply(str(user) + " is not your mutual or does not exist!").error()
@@ -63,9 +63,8 @@ class Post(Model):
 			"type": self.type
 		}
 		mongo.db.posts.insert(post)
-		self.notify(self.to, requester)
-
-
+		if notify:
+			self.notify(self.to, requester)
 
 		return Reply().ok()
 
