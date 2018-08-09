@@ -14,9 +14,13 @@ import requests
 # ok
 @app.route('/login', methods=['POST'])
 def login():
+
+
+#	print(request.)
+
 	salt = bcrypt.gensalt()
 
-	print(bcrypt.hashpw(request.json['password'].encode(), salt))
+	#print(bcrypt.hashpw(request.json['password'].encode(), salt))
 
 	user = User.login(request.json['username'], request.json['password'])
 	if user is not None:
@@ -25,10 +29,7 @@ def login():
 		return Reply("Invalid username or password!").error()
 
 
-
-
 # ok
-
 @app.route('/search', methods=['POST', 'GET'])
 @User.validate_user
 def search(requester):
@@ -109,6 +110,7 @@ def get_post(user):
 def notify(user):
 	user.send_post_notification(user)
 	return Reply().ok()
+
 
 # ok
 @app.route('/getArchive', methods=['POST'])
